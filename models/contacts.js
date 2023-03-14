@@ -1,7 +1,7 @@
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require("fs").promises;
+const path = require("path");
 
-const contactsPath = path.resolve('./models/contacts.json');
+const contactsPath = path.resolve("./models/contacts.json");
 
 const listContacts = async () => {
   try {
@@ -11,36 +11,35 @@ const listContacts = async () => {
   } catch (e) {
     console.error(e.message);
   }
-}
+};
 
 const getContactById = async (contactId) => {
   try {
     const data = await fs.readFile(contactsPath);
     const parsedData = JSON.parse(data.toString());
-    const locatedContact = parsedData.filter(contact => contact.id === contactId);
+    const locatedContact = parsedData.filter(
+      (contact) => contact.id === contactId
+    );
     return locatedContact;
   } catch (e) {
     console.error(e.message);
   }
-}
+};
 
 const removeContact = async (contactId) => {
-  try {
-    const data = await fs.readFile(contactsPath);
-    const parsedData = JSON.parse(data.toString());
-
-    if (parsedData.some(contact => contact.id === contactId)) {
-      const filteredContacts = parsedData.filter(contact => contact.id !== contactId);
-      fs.writeFile(contactsPath, JSON.stringify(filteredContacts));
-      return true;
-    }
-    return false;
-  } catch (e) {
-    console.error(e.message);
+  const contacts = await listContacts();
+  const index = contacts.findIndex(
+    (contact) => contact.id === contactId.toString()
+  );
+  if (index === -1) {
+    return null;
   }
-}
+  const [removeContact] = contacts.splice(index, 1);
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+  return removeContact;
+};
 
-const addContact = async ({name, email, phone}) => {
+const addContact = async ({ name, email, phone }) => {
   try {
     const data = await fs.readFile(contactsPath);
     const parsedData = JSON.parse(data.toString());
@@ -50,7 +49,7 @@ const addContact = async ({name, email, phone}) => {
       id: `${Number(lastId) + 1}`,
       name,
       email,
-      phone
+      phone,
     };
 
     parsedData.push(newContact);
@@ -60,26 +59,25 @@ const addContact = async ({name, email, phone}) => {
   } catch (e) {
     console.error(e.message);
   }
-}
+};
 
 const updateContact = async (contactId, body) => {
   try {
     const data = await fs.readFile(contactsPath);
     const parsedData = JSON.parse(data.toString());
-    const index = parsedData.findIndex(contact => contact.id === contactId);
+    const index = parsedData.findIndex((contact) => contact.id === contactId);
 
     if (index === -1) {
-        return null;
+      return null;
     }
-    parsedData[index] = {...parsedData[index], ...body};
+    parsedData[index] = { ...parsedData[index], ...body };
     fs.writeFile(contactsPath, JSON.stringify(parsedData));
-    
+
     return parsedData[index];
   } catch (e) {
     console.error(e.message);
   }
-}
-
+};
 
 module.exports = {
   listContacts,
@@ -87,4 +85,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-}
+};
